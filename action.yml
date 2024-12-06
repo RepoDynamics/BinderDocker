@@ -89,6 +89,10 @@ outputs:
       Full base name used for all images,
       i.e., the full image name minus the tag,
       e.g., 'ghcr.io/REPOSITORY_OWNER/REPOSITORY_NAME'
+  image_digest:
+    description: |
+      SHA-256 hash digest of the image.
+      This is only available when 'push' is set to true.
   image_names:
     description: Full names of all tagged docker images, as a JSON array string.
 branding:
