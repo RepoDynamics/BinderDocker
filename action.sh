@@ -126,7 +126,7 @@ if [ "$INPUT_DOCKERFILE_APPEND" ]; then
     APPENDIX=`cat $INPUT_DOCKERFILE_APPEND`
     echo "Dockerfile appendix:\n$APPENDIX"
 fi
-git_path=$(get_full_path "${INPUT_GIT_PATH}")
+git_path=$(get_fullpath "${INPUT_GIT_PATH}")
 echo "git_path: ${git_path}"
 echo "::endgroup::"
 
