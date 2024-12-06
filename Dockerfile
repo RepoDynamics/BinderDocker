@@ -1,6 +1,6 @@
 FROM quay.io/jupyterhub/repo2docker:main
 
-RUN apk add --no-cache curl build-base python3 python3-dev py3-pip
+RUN apk add --no-cache curl jq build-base python3 python3-dev py3-pip
 
 RUN python3 -m pip install --upgrade wheel setuptools
 
