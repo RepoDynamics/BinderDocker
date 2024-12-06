@@ -55,7 +55,7 @@ generate_image_names() {
 
     # Output base image name
     echo "image-name: ${IMAGE_NAME}"
-    echo "image-base-name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+    echo "image_base_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
 
     # Parse INPUT_IMAGE_TAGS into an array (space-separated by default)
     read -r -a image_tags <<< "$input_image_tags"
@@ -68,7 +68,7 @@ generate_image_names() {
     echo "Full image names: ${IMAGE_NAMES[@]}"
 
     image_names_json=$(printf '%s\n' "${IMAGE_NAMES[@]}" | jq -R . | jq -sc .)
-    echo "image-names=${image_names_json}" >> $GITHUB_OUTPUT
+    echo "image_names=${image_names_json}" >> $GITHUB_OUTPUT
 }
 
 
