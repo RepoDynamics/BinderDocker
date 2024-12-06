@@ -167,7 +167,7 @@ echo "::group::Build"
 jupyter-repo2docker \
     --no-run \
     --user-id 1000 \
-    --user-name ${NB_USER} \
+    --user-name ${INPUT_IMAGE_USER} \
     --target-repo-dir ${IMAGE_DIR} \
     --image-name ${IMAGE_NAMES[0]} \
     --label "repo2docker.repo=https://github.com/${GITHUB_REPOSITORY}" \
