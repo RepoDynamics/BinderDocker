@@ -90,7 +90,7 @@ if [ -z "$INPUT_IMAGE_USER" ]; then
 fi
 # image_names
 IMAGE_NAMES=($(generate_image_names))
-echo "image_names=${IMAGE_NAMES[@]}" >> $GITHUB_OUTPUT
+echo "image-names=${IMAGE_NAMES[@]}" >> $GITHUB_OUTPUT
 # image_dir
 if [ -z "$INPUT_IMAGE_DIR" ]; then
   IMAGE_DIR="/home/${INPUT_IMAGE_USER}"
