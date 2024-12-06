@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # exit when any command fails
-set -e -x
+set -e
 
 validate_boolean_input() {
   # Validate the value is a recognized boolean, and set it to "" if it's false.
@@ -100,6 +100,11 @@ get_fullpath() {
     fi
     echo "$fullpath"
 }
+
+
+echo "::group::Docker Authentication Info"
+docker info
+echo "::endgroup::"
 
 
 echo "::group::Input Processing"
