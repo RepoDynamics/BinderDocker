@@ -144,7 +144,7 @@ cache_from=""
 for cache_image_name in "${CACHE_IMAGE_NAMES[@]}"; do
     echo "::group::Pull Cache Image ${cache_image_name}"
     if docker pull "${cache_image_name}"; then
-        cache_from+="--cache-from ${cache_image_name} "
+        cache_from+="--cache-from '${cache_image_name}' "
     else
         echo "::warning title=BinderDocker::Failed to pull cache image '${cache_image_name}'."
     fi
@@ -164,18 +164,18 @@ fi
 echo "::group::Build"
 # Explicitly specify repo and ref labels, as repo2docker only knows it is building something local.
 # Don't quote ${INPUT_REPO2DOCKER_ARGS}, as it *should* be interpreted as arbitrary arguments to be passed to repo2docker.
-jupyter-repo2docker \
+eval "jupyter-repo2docker \
     --no-run \
     --user-id 1000 \
-    --user-name "${INPUT_IMAGE_USER}" \
-    --target-repo-dir "${IMAGE_DIR}" \
-    --image-name ${IMAGE_NAMES[0]} \
-    --label "repo2docker.repo=https://github.com/${GITHUB_REPOSITORY}" \
-    --label "repo2docker.ref=${INPUT_GIT_REF}" \
-    --appendix "$APPENDIX" \
+    --user-name '${INPUT_IMAGE_USER}' \
+    --target-repo-dir '${IMAGE_DIR}' \
+    --image-name '${IMAGE_NAMES[0]}' \
+    --label 'repo2docker.repo=https://github.com/${GITHUB_REPOSITORY}' \
+    --label 'repo2docker.ref=${INPUT_GIT_REF}' \
+    --appendix '${APPENDIX}' \
     ${cache_from} \
     ${INPUT_REPO2DOCKER_ARGS} \
-    ${git_path}
+    '${git_path}'"
 echo "::endgroup::"
 
 
