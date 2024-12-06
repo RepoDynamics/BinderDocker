@@ -132,11 +132,11 @@ echo "::endgroup::"
 
 
 # Docker login
-if [[ -n "$PUSH" ]]; then
-    echo "::group::Docker Login"
-    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
-    echo "::endgroup::"
-fi
+#if [[ -n "$PUSH" ]]; then
+#    echo "::group::Docker Login"
+#    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
+#    echo "::endgroup::"
+#fi
 
 
 # Cache pull
@@ -163,7 +163,10 @@ fi
 # Build
 echo "::group::Build"
 # Explicitly specify repo and ref labels, as repo2docker only knows it is building something local.
-# Don't quote ${INPUT_REPO2DOCKER_ARGS}, as it *should* be interpreted as arbitrary arguments to be passed to repo2docker.
+# Don't quote ${INPUT_REPO2DOCKER_ARGS},
+# as it *should* be interpreted as arbitrary arguments to be passed to repo2docker.
+# Instead, use eval to correctly evaluate the entire command
+# (see https://stackoverflow.com/questions/30061682/bash-send-string-argument-as-multiple-arguments).
 eval "jupyter-repo2docker \
     --no-run \
     --user-id 1000 \
