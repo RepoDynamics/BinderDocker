@@ -46,6 +46,12 @@ inputs:
       Multiple names must be separated by spaces.
     required: false
     default: ""
+  cache-image-tags:
+    description: |
+      Tags of previous versions of this image to use as cache.
+      Multiple tags must be separated by spaces.
+    required: false
+    default: ""
   repo2docker-args:
     description: Extra commandline arguments to be passed to repo2docker
     required: false

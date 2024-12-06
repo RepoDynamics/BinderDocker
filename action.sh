@@ -27,7 +27,6 @@ generate_image_names() {
     local github_repository="$GITHUB_REPOSITORY"
     local input_image_tags="$INPUT_IMAGE_TAGS"
 
-    local image_name
     local image_name_json
     local repo_name
     local -a image_tags
@@ -37,25 +36,26 @@ generate_image_names() {
     # Determine IMAGE_NAME based on environment variables
     if [ -z "$input_image_name" ]; then
         if [[ -z "$input_docker_username" ]]; then
-            image_name="$github_repository"
+            IMAGE_NAME="$github_repository"
         else
             repo_name=$(echo "$github_repository" | cut -d "/" -f 2)
-            image_name="$input_docker_username/$repo_name"
+            IMAGE_NAME="$input_docker_username/$repo_name"
         fi
     else
-        image_name="$input_image_name"
+        IMAGE_NAME="$input_image_name"
     fi
 
     # Prepend image name with registry if supplied
     if [ "$input_docker_registry" ]; then
-        image_name="$input_docker_registry/$image_name"
+        IMAGE_NAME="$input_docker_registry/$IMAGE_NAME"
     fi
 
     # Convert image name to lowercase
-    image_name="${image_name,,}"
+    IMAGE_NAME="${IMAGE_NAME,,}"
 
     # Output base image name
-    echo "image-base-name=${image_name}" >> $GITHUB_OUTPUT
+    echo "image-name: ${IMAGE_NAME}"
+    echo "image-base-name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
 
     # Parse INPUT_IMAGE_TAGS into an array (space-separated by default)
     read -r -a image_tags <<< "$input_image_tags"
@@ -63,13 +63,29 @@ generate_image_names() {
 
     # Create the IMAGE_NAMES array by prepending IMAGE_NAME to each tag
     for tag in "${image_tags[@]}"; do
-        IMAGE_NAMES+=("${image_name}:${tag}")
+        IMAGE_NAMES+=("${IMAGE_NAME}:${tag}")
     done
     echo "Full image names: ${IMAGE_NAMES[@]}"
 
     image_names_json=$(printf '%s\n' "${IMAGE_NAMES[@]}" | jq -R . | jq -s .)
     echo "image-names=${image_names_json}" >> $GITHUB_OUTPUT
 }
+
+
+# Generate and write CACHE_IMAGE_NAMES
+generate_cache_image_names() {
+    local -a cache_image_names
+    local -a cache_image_tags
+
+    read -r -a cache_image_names <<< "$INPUT_CACHE_IMAGE_NAMES"
+    read -r -a cache_image_tags <<< "$INPUT_CACHE_IMAGE_TAGS"
+
+    for cache_image_tag in "${cache_image_tags[@]}"; do
+        cache_image_names+=("${IMAGE_NAME}:${cache_image_tag}")
+    done
+    CACHE_IMAGE_NAMES=("${cache_image_names[@]}")
+}
+
 
 get_fullpath() {
     local rel_path="$1"
@@ -96,6 +112,8 @@ if [ -z "$INPUT_IMAGE_USER" ]; then
 fi
 # image_names
 generate_image_names
+# cache_image_names
+generate_cache_image_names
 # image_dir
 if [ -z "$INPUT_IMAGE_DIR" ]; then
   IMAGE_DIR="/home/${INPUT_IMAGE_USER}"
@@ -122,9 +140,8 @@ fi
 
 
 # Cache pull
-read -r -a cache_image_names <<< "$INPUT_CACHE_IMAGE_NAMES"
 cache_from=""
-for cache_image_name in "${cache_image_names[@]}"; do
+for cache_image_name in "${CACHE_IMAGE_NAMES[@]}"; do
     echo "::group::Pull Cache Image ${cache_image_name}"
     if docker pull "${cache_image_name}"; then
         cache_from+="--cache-from ${cache_image_name} "
