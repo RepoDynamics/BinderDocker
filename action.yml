@@ -78,6 +78,11 @@ inputs:
       Accepted values are 'true', 'True', '1', 'false', 'False', '0'.
     required: false
 outputs:
+  image-base-name:
+    description: |
+      Full base name used for all images,
+      i.e., the full image name minus the tag,
+      e.g., 'ghcr.io/REPOSITORY_OWNER/REPOSITORY_NAME'
   image-names:
     description: Full names of all tagged docker images, as a JSON array string.
 branding:

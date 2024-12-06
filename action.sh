@@ -28,9 +28,11 @@ generate_image_names() {
     local input_image_tags="$INPUT_IMAGE_TAGS"
 
     local image_name
+    local image_name_json
     local repo_name
     local -a image_tags
-    local -a image_names
+
+    declare -a IMAGE_NAMES
 
     # Determine IMAGE_NAME based on environment variables
     if [ -z "$input_image_name" ]; then
@@ -52,17 +54,21 @@ generate_image_names() {
     # Convert image name to lowercase
     image_name="${image_name,,}"
 
+    # Output base image name
+    echo "image-base-name=${image_name}" >> $GITHUB_OUTPUT
+
     # Parse INPUT_IMAGE_TAGS into an array (space-separated by default)
     read -r -a image_tags <<< "$input_image_tags"
     echo "image_tags: ${image_tags[@]}"
 
     # Create the IMAGE_NAMES array by prepending IMAGE_NAME to each tag
     for tag in "${image_tags[@]}"; do
-        image_names+=("${image_name}:${tag}")
+        IMAGE_NAMES+=("${image_name}:${tag}")
     done
-    echo "Full image names: ${image_names[@]}"
+    echo "Full image names: ${IMAGE_NAMES[@]}"
 
-    echo "${image_names[@]}"
+    image_names_json=$(printf '%s\n' "${IMAGE_NAMES[@]}" | jq -R . | jq -s .)
+    echo "image-names=${image_names_json}" >> $GITHUB_OUTPUT
 }
 
 get_fullpath() {
@@ -89,9 +95,7 @@ if [ -z "$INPUT_IMAGE_USER" ]; then
   exit 1
 fi
 # image_names
-IMAGE_NAMES=($(generate_image_names))
-image_names_json=$(printf '%s\n' "${IMAGE_NAMES[@]}" | jq -R . | jq -s .)
-echo "image-names=${image_names_json}" >> $GITHUB_OUTPUT
+generate_image_names
 # image_dir
 if [ -z "$INPUT_IMAGE_DIR" ]; then
   IMAGE_DIR="/home/${INPUT_IMAGE_USER}"
