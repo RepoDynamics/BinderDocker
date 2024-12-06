@@ -31,7 +31,7 @@ generate_image_names() {
     local repo_name
     local -a image_tags
 
-    declare -a IMAGE_NAMES
+    IMAGE_NAMES=()
 
     # Determine IMAGE_NAME based on environment variables
     if [ -z "$input_image_name" ]; then
@@ -167,8 +167,8 @@ echo "::group::Build"
 jupyter-repo2docker \
     --no-run \
     --user-id 1000 \
-    --user-name ${INPUT_IMAGE_USER} \
-    --target-repo-dir ${IMAGE_DIR} \
+    --user-name "${INPUT_IMAGE_USER}" \
+    --target-repo-dir "${IMAGE_DIR}" \
     --image-name ${IMAGE_NAMES[0]} \
     --label "repo2docker.repo=https://github.com/${GITHUB_REPOSITORY}" \
     --label "repo2docker.ref=${INPUT_GIT_REF}" \
