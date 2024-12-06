@@ -79,7 +79,7 @@ inputs:
     required: false
 outputs:
   image-names:
-    description: Names of the docker images.
+    description: Full names of all tagged docker images, as a JSON array string.
 branding:
   color: 'gray-dark'
   icon: 'package'
