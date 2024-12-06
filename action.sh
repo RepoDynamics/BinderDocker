@@ -67,7 +67,7 @@ generate_image_names() {
     done
     echo "Full image names: ${IMAGE_NAMES[@]}"
 
-    image_names_json=$(printf '%s\n' "${IMAGE_NAMES[@]}" | jq -R . | jq -s .)
+    image_names_json=$(printf '%s\n' "${IMAGE_NAMES[@]}" | jq -R . | jq -sc .)
     echo "image-names=${image_names_json}" >> $GITHUB_OUTPUT
 }
 
@@ -197,21 +197,26 @@ fi
 
 # Push
 if [[ -n "$PUSH" ]]; then
-  for image_name in "${IMAGE_NAMES[@]}"; do
-      echo "::group::Push $image_name"
-      docker push "$image_name"
-      echo "::endgroup::"
-  done
-  if [[ -n "$CHECK_PUBLIC" ]]; then
-      docker logout
-      for image_name in "${IMAGE_NAMES[@]}"; do
-          echo "::group::Public Status Validation: ${image_name}"
-          if docker pull "${image_name}"; then
-              echo "${image_name} is publicly visible."
-          else
-              echo "::warning title=BinderDocker::Pushed image '${image_name}' is not publicly visible."
-          fi
-          echo "::endgroup::"
-      done
-  fi
+    for image_name in "${IMAGE_NAMES[@]}"; do
+        echo "::group::Push $image_name"
+        docker push "$image_name"
+        echo "::endgroup::"
+    done
+    # Digest
+    DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE_NAME" | cut -d'@' -f2)
+    echo "SHA digest: $DIGEST"
+    echo "image_digest=$DIGEST" >> $GITHUB_OUTPUT
+    # Public status
+    if [[ -n "$CHECK_PUBLIC" ]]; then
+        docker logout
+        for image_name in "${IMAGE_NAMES[@]}"; do
+            echo "::group::Public Status Validation: ${image_name}"
+            if docker pull "${image_name}"; then
+                echo "${image_name} is publicly visible."
+            else
+                echo "::warning title=BinderDocker::Pushed image '${image_name}' is not publicly visible."
+            fi
+            echo "::endgroup::"
+        done
+    fi
 fi
