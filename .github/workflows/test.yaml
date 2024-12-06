@@ -1,0 +1,57 @@
+name: Test
+
+on:
+  pull_request:
+    paths-ignore:
+      - ".github/workflows/*.yaml"
+      - "!.github/workflows/test.yaml"
+  push:
+    paths-ignore:
+      - ".github/workflows/*.yaml"
+      - "!.github/workflows/test.yaml"
+    branches-ignore:
+      - "dependabot/**"
+      - "pre-commit-ci-update-config"
+    tags: ["**"]
+  schedule:
+    # Run at 05:00 every day, ref: https://crontab.guru/#0_5_*_*_*
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  test-registry:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image_name: ['repo2docker-test', '']
+        tag: ['test-tag', '']
+        no_push: [true, '']
+        latest_off: [true, '']
+    services:
+      local-registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+    steps:  
+    - uses: actions/checkout@v4
+    - name: test action
+      uses: ./
+      with:
+        IMAGE_NAME: ${{ matrix.image_name }}
+        ADDITIONAL_TAG: ${{ matrix.tag }}
+        PUSH: ${{ matrix.push }}
+        LATEST_TAG_OFF: ${{ matrix.latest_off }}
+        DOCKER_REGISTRY: "localhost:5000"
+        DOCKER_USERNAME: 'foo'
+        DOCKER_PASSWORD: 'foo'
+
+  mybinder:
+    runs-on: ubuntu-latest
+    steps:  
+    - uses: actions/checkout@v4
+        
+    - name: mybinder
+      uses: ./
+      with:
+        PUSH: true
+        MYBINDERORG_TAG: ${{ github.sha }}

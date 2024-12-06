@@ -1,0 +1,88 @@
+name: BinderDocker
+description: 'Creates a docker image of your repository to view the collection of notebooks'
+inputs:
+  docker_username:
+    description: Docker registry username.
+    required: false
+    default: ${{ github.repository_owner }}
+  docker_password:
+    description: Docker registry password.
+    required: false
+    default: ${{ github.token }}
+  docker_registry:
+    description: Domain name of the docker registry.
+    required: false
+    default: ghcr.io
+  image_name:
+    description: |
+      Name of the image, i.e., `NAMESPACE/IMAGE_NAME`.
+      If not supplied, this defaults to `$DOCKER_USERNAME/$GITHUB_REPOSITORY_NAME`
+      or `$GITHUB_REPOSITORY`.
+    required: false
+  image_tags:
+    description: |
+      Tag(s) of the image.
+      Multiple tags must be separated by spaces.
+    required: true
+    default: latest
+  image_user:
+    description: username of the primary user in the image
+    required: true
+    default: jovyan
+  image_dir:
+    description: path inside the image where contents of the repositories are copied to
+    required: false
+  git_path:
+    description: Path to the git repository to build. Defaults to current working directory.
+    default: ""
+    required: false
+  git_ref:
+    description: Git ref (e.g., commit hash) to assign to the 'repo2docker.ref' image label.
+    required: true
+    default: ${{ github.sha }}
+  cache_image_names:
+    description: |
+      Names of previous versions of this image to use as cache.
+      Multiple names must be separated by spaces.
+    required: false
+    default: ""
+  repo2docker_args:
+    description: Extra commandline arguments to be passed to repo2docker
+    required: false
+  repo2docker_version:
+    description: Force a specific version of repo2docker to be installed. Either in the form of `repo2docker==<version>` for install from pypi, or `git+https://<github-url>@<commit-hash` for installing from a github repo / branch
+    required: false
+  dockerfile_append:
+    description: |
+      Appendix of Dockerfile commands to run at the end of the build.
+      Can be used to customize the resulting image after all standard build steps finish.
+    required: false
+  test_script:
+    description: |
+      A bash script to run inside the container to test the built image.
+      Example:
+      ```
+      python3 -m pip install --no-cache -r image-tests/requirements.txt
+      pytest image-tests/
+      ```
+    required: false
+  push:
+    description: |
+      Whether to push the image to the registry.
+      Accepted values are 'true', 'True', '1', 'false', 'False', '0'.
+    required: false
+    default: 'false'
+  check_public:
+    description: |
+      Validate that the image pushed to the registry is publicly visible.
+      Accepted values are 'true', 'True', '1', 'false', 'False', '0'.
+    required: false
+outputs:
+  image_sha_name:
+    description: The name of the docker image, which is tagged with the SHA.
+branding:
+  color: 'gray-dark'
+  icon: 'package'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
