@@ -74,16 +74,17 @@ generate_image_names() {
 
 # Generate and write CACHE_IMAGE_NAMES
 generate_cache_image_names() {
-    local -a cache_image_names
+    CACHE_IMAGE_NAMES=()
+
     local -a cache_image_tags
 
     read -r -a cache_image_names <<< "$INPUT_CACHE_IMAGE_NAMES"
     read -r -a cache_image_tags <<< "$INPUT_CACHE_IMAGE_TAGS"
 
     for cache_image_tag in "${cache_image_tags[@]}"; do
-        cache_image_names+=("${IMAGE_NAME}:${cache_image_tag}")
+        CACHE_IMAGE_NAMES+=("${IMAGE_NAME}:${cache_image_tag}")
     done
-    CACHE_IMAGE_NAMES=("${cache_image_names[@]}")
+    echo "Cache image names: ${CACHE_IMAGE_NAMES}"
 }
 
 
@@ -102,6 +103,15 @@ get_fullpath() {
 }
 
 
+# Docker login
+if [[ -n "$PUSH" ]]; then
+    echo "::group::Docker Login"
+    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
+    echo "::endgroup::"
+fi
+
+
+# Docker info
 echo "::group::Docker Info"
 docker info
 echo "::endgroup::"
@@ -136,18 +146,10 @@ echo "git_path: ${git_path}"
 echo "::endgroup::"
 
 
-# Docker login
-if [[ -n "$PUSH" ]]; then
-    echo "::group::Docker Login"
-    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
-    echo "::endgroup::"
-fi
-
-
 # Cache pull
 cache_from=""
 for cache_image_name in "${CACHE_IMAGE_NAMES[@]}"; do
-    echo "::group::Pull Cache Image ${cache_image_name}"
+    echo "::group::Cache Pull: ${cache_image_name}"
     if docker pull "${cache_image_name}"; then
         cache_from+="--cache-from '${cache_image_name}' "
     else
@@ -189,7 +191,7 @@ echo "::endgroup::"
 
 # Tag
 for image_name in "${IMAGE_NAMES[@]:1}"; do
-    echo "::group::Tag $image_name"
+    echo "::group::Tag: ${image_name}"
     docker tag "${IMAGE_NAMES[0]}" "$image_name"
     echo "::endgroup::"
 done
@@ -206,7 +208,7 @@ fi
 # Push
 if [[ -n "$PUSH" ]]; then
     for image_name in "${IMAGE_NAMES[@]}"; do
-        echo "::group::Push $image_name"
+        echo "::group::Push ${image_name}"
         docker push "$image_name"
         echo "::endgroup::"
     done
