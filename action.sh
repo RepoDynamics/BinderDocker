@@ -33,7 +33,6 @@ generate_image_names() {
     input_image_name="${input_image_name,,}"
     # Parse INPUT_IMAGE_TAGS into an array (space-separated by default)
     read -r -a image_tags <<< "$input_image_tags"
-    echo "image_tags: ${image_tags[@]}"
     # Create the IMAGE_NAMES array by prepending IMAGE_NAME to each tag
     for tag in "${image_tags[@]}"; do
         IMAGE_NAMES+=("${input_image_name}:${tag}")
@@ -53,7 +52,7 @@ generate_cache_image_names() {
     read -r -a cache_image_tags <<< "$INPUT_CACHE_IMAGE_TAGS"
 
     for cache_image_tag in "${cache_image_tags[@]}"; do
-        CACHE_IMAGE_NAMES+=("${IMAGE_NAME}:${cache_image_tag}")
+        CACHE_IMAGE_NAMES+=("${INPUT_IMAGE_NAME}:${cache_image_tag}")
     done
     echo "- cache image names: ${CACHE_IMAGE_NAMES}"
 }
@@ -179,7 +178,7 @@ if [[ -n "$PUSH" ]]; then
         echo "::endgroup::"
     done
     # Digest
-    DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE_NAME" | cut -d'@' -f2)
+    DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$INPUT_IMAGE_NAME" | cut -d'@' -f2)
     echo "🔐 SHA digest: $DIGEST"
     echo "image_digest=$DIGEST" >> $GITHUB_OUTPUT
 fi
