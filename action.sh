@@ -9,66 +9,35 @@ validate_boolean_input() {
   local output_variable="$2"
 
   if [[ "$input_value" =~ ^(true|True|1)$ ]]; then
-    echo "${output_variable,,}: true"
+    echo "- ${output_variable,,}: true"
     eval "$output_variable=true"
   elif [[ "$input_value" =~ ^(false|False|0)$ ]]; then
-    echo "${output_variable,,}: false"
+    echo "- ${output_variable,,}: false"
     eval "$output_variable="
   else
-    echo "::error title=BinderDocker::Invalid input value for '${output_variable}': '$input_value'. Allowed values are: 'true', 'True', '1', 'false', 'False', '0'."
+    echo "::error title=BinderDocker::Invalid input value for '${output_variable,,}': '$input_value'. Allowed values are: 'true', 'True', '1', 'false', 'False', '0'."
     exit 1
   fi
 }
 
 generate_image_names() {
-    local input_image_name="$INPUT_IMAGE_NAME"
-    local input_docker_username="$INPUT_DOCKER_USERNAME"
-    local input_docker_registry="$INPUT_DOCKER_REGISTRY"
-    local github_repository="$GITHUB_REPOSITORY"
-    local input_image_tags="$INPUT_IMAGE_TAGS"
-
-    local image_name_json
-    local repo_name
-    local -a image_tags
-
     IMAGE_NAMES=()
 
-    # Determine IMAGE_NAME based on environment variables
-    if [ -z "$input_image_name" ]; then
-        if [[ -z "$input_docker_username" ]]; then
-            IMAGE_NAME="$github_repository"
-        else
-            repo_name=$(echo "$github_repository" | cut -d "/" -f 2)
-            IMAGE_NAME="$input_docker_username/$repo_name"
-        fi
-    else
-        IMAGE_NAME="$input_image_name"
-    fi
-
-    # Prepend image name with registry if supplied
-    if [ "$input_docker_registry" ]; then
-        IMAGE_NAME="$input_docker_registry/$IMAGE_NAME"
-    fi
+    local input_image_name="$INPUT_IMAGE_NAME"
+    local input_image_tags="$INPUT_IMAGE_TAGS"
+    local -a image_tags
 
     # Convert image name to lowercase
-    IMAGE_NAME="${IMAGE_NAME,,}"
-
-    # Output base image name
-    echo "image-name: ${IMAGE_NAME}"
-    echo "image_base_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
-
+    input_image_name="${input_image_name,,}"
     # Parse INPUT_IMAGE_TAGS into an array (space-separated by default)
     read -r -a image_tags <<< "$input_image_tags"
     echo "image_tags: ${image_tags[@]}"
-
     # Create the IMAGE_NAMES array by prepending IMAGE_NAME to each tag
     for tag in "${image_tags[@]}"; do
-        IMAGE_NAMES+=("${IMAGE_NAME}:${tag}")
+        IMAGE_NAMES+=("${input_image_name}:${tag}")
     done
-    echo "Full image names: ${IMAGE_NAMES[@]}"
-
-    image_names_json=$(printf '%s\n' "${IMAGE_NAMES[@]}" | jq -R . | jq -sc .)
-    echo "image_names=${image_names_json}" >> $GITHUB_OUTPUT
+    echo "- image names: ${IMAGE_NAMES[@]}"
+    echo "image_names=${IMAGE_NAMES[@]}" >> $GITHUB_OUTPUT
 }
 
 
@@ -84,7 +53,7 @@ generate_cache_image_names() {
     for cache_image_tag in "${cache_image_tags[@]}"; do
         CACHE_IMAGE_NAMES+=("${IMAGE_NAME}:${cache_image_tag}")
     done
-    echo "Cache image names: ${CACHE_IMAGE_NAMES}"
+    echo "- cache image names: ${CACHE_IMAGE_NAMES}"
 }
 
 
@@ -103,17 +72,20 @@ get_fullpath() {
 }
 
 
-echo "::group::Inputs"
+echo "::group::🖲 Inputs"
+# Verify required inputs
+required_vars=("IMAGE_NAME" "IMAGE_TAGS" "IMAGE_USER", "GIT_REF")
+for var_name in "${required_vars[@]}"; do
+    full_var_name="INPUT_$var_name"
+    if [ -z "${!full_var_name}" ]; then
+        echo "::error title=BinderDocker::Required input '$full_var_name' is not defined or is empty."
+        exit 1
+    else
+        echo "- ${var_name,,}: ${!full_var_name}"
+    fi
+done
 validate_boolean_input "$INPUT_PUSH" "PUSH"
-validate_boolean_input "$INPUT_CHECK_PUBLIC" "CHECK_PUBLIC"
-# image_user
-if [ -z "$INPUT_IMAGE_USER" ]; then
-  echo "::error title=BinderDocker::Input 'image_user' is required."
-  exit 1
-fi
-# image_names
 generate_image_names
-# cache_image_names
 generate_cache_image_names
 # image_dir
 if [ -z "$INPUT_IMAGE_DIR" ]; then
@@ -121,36 +93,27 @@ if [ -z "$INPUT_IMAGE_DIR" ]; then
 else
   IMAGE_DIR="${INPUT_IMAGE_DIR}"
 fi
-echo "image_dir: ${IMAGE_DIR}"
+echo "- image_dir: ${IMAGE_DIR}"
 # dockerfile_append
 if [ "$INPUT_DOCKERFILE_APPEND" ]; then
     APPENDIX=`cat $INPUT_DOCKERFILE_APPEND`
     echo "Dockerfile appendix:\n$APPENDIX"
 fi
 git_path=$(get_fullpath "${INPUT_GIT_PATH}")
-echo "git_path: ${git_path}"
+echo "- git_path: ${git_path}"
 echo "::endgroup::"
-
-
-## Docker login
-#if [[ -n "$PUSH" ]]; then
-#    echo "::group::Docker Login"
-#    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
-#    echo "::endgroup::"
-#fi
 
 
 # Docker info
-echo "::group::Docker Info"
+echo "::group::ℹ️ Docker Info"
 docker info
 echo "::endgroup::"
-
 
 
 # Cache pull
 cache_from=""
 for cache_image_name in "${CACHE_IMAGE_NAMES[@]}"; do
-    echo "::group::Cache Pull: ${cache_image_name}"
+    echo "::group::📥 Cache Pull: ${cache_image_name}"
     if docker pull "${cache_image_name}"; then
         cache_from+="--cache-from '${cache_image_name}' "
     else
@@ -162,14 +125,14 @@ done
 
 # repo2docker version update
 if [[ -n "${INPUT_REPO2DOCKER_VERSION}" ]]; then
-    echo "::group::Repo2docker ${INPUT_REPO2DOCKER_VERSION} Installation"
+    echo "::group::📲 Repo2docker ${INPUT_REPO2DOCKER_VERSION} Installation"
     python3 -m pip install --upgrade --force ${INPUT_REPO2DOCKER_VERSION}
     echo "::endgroup::"
 fi
 
 
 # Build
-echo "::group::Build"
+echo "::group::🏗 Build"
 # Explicitly specify repo and ref labels, as repo2docker only knows it is building something local.
 # Don't quote ${INPUT_REPO2DOCKER_ARGS},
 # as it *should* be interpreted as arbitrary arguments to be passed to repo2docker.
@@ -192,7 +155,7 @@ echo "::endgroup::"
 
 # Tag
 for image_name in "${IMAGE_NAMES[@]:1}"; do
-    echo "::group::Tag: ${image_name}"
+    echo "::group::🏷 Tag: ${image_name}"
     docker tag "${IMAGE_NAMES[0]}" "$image_name"
     echo "::endgroup::"
 done
@@ -200,7 +163,7 @@ done
 
 # Test
 if [[ -n "${INPUT_TEST_SCRIPT}" ]]; then
-    echo "::group::Test"
+    echo "::group::🧪 Test"
     docker run -u 1000 -w "${IMAGE_DIR}" "${IMAGE_NAMES[0]}" /bin/bash -c "eval '${INPUT_TEST_SCRIPT}'"
     echo "::endgroup::"
 fi
@@ -209,25 +172,12 @@ fi
 # Push
 if [[ -n "$PUSH" ]]; then
     for image_name in "${IMAGE_NAMES[@]}"; do
-        echo "::group::Push ${image_name}"
+        echo "::group::📤 Push ${image_name}"
         docker push "$image_name"
         echo "::endgroup::"
     done
     # Digest
     DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE_NAME" | cut -d'@' -f2)
-    echo "SHA digest: $DIGEST"
+    echo "🔐 SHA digest: $DIGEST"
     echo "image_digest=$DIGEST" >> $GITHUB_OUTPUT
-    # Public status
-    if [[ -n "$CHECK_PUBLIC" ]]; then
-        docker logout
-        for image_name in "${IMAGE_NAMES[@]}"; do
-            echo "::group::Public Status Validation: ${image_name}"
-            if docker pull "${image_name}"; then
-                echo "${image_name} is publicly visible."
-            else
-                echo "::warning title=BinderDocker::Pushed image '${image_name}' is not publicly visible."
-            fi
-            echo "::endgroup::"
-        done
-    fi
 fi

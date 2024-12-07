@@ -1,24 +1,15 @@
 name: BinderDocker
 description: 'Creates a docker image of your repository to view the collection of notebooks'
 inputs:
-  docker_username:
-    description: Docker registry username.
-    required: false
-    default: ${{ github.repository_owner }}
-  docker_password:
-    description: Docker registry password.
-    required: false
-    default: ${{ github.token }}
-  docker_registry:
-    description: Domain name of the docker registry.
-    required: false
-    default: ghcr.io
   image_name:
     description: |
-      Name of the image, i.e., `NAMESPACE/IMAGE_NAME`.
-      If not supplied, this defaults to `$DOCKER_USERNAME/$GITHUB_REPOSITORY_NAME`
-      or `$GITHUB_REPOSITORY`.
-    required: false
+      Name of the image, i.e., `NAMESPACE/IMAGE_NAME` or `REGISTRY/NAMESPACE/IMAGE_NAME`.
+      If `REGISTRY` is omitted, Docker assumes `docker.io`.
+      Note that the tag must be omitted here.
+      Examples: 'ghcr.io/RepoDynamics/BinderDocker'
+      The name will be automatically lowercased,
+      as Docker only allows lowercase image names.
+    required: true
   image_tags:
     description: |
       Tag(s) of the image.
@@ -32,24 +23,26 @@ inputs:
   image_dir:
     description: path inside the image where contents of the repositories are copied to
     required: false
+  git_ref:
+    description: Git ref (e.g., commit hash) to assign to the 'repo2docker.ref' image label.
+    required: true
   git_path:
     description: Path to the git repository to build. Defaults to current working directory.
     default: ""
     required: false
-  git_ref:
-    description: Git ref (e.g., commit hash) to assign to the 'repo2docker.ref' image label.
-    required: true
-    default: ${{ github.sha }}
   cache_image_names:
     description: |
       Names of previous versions of this image to use as cache.
       Multiple names must be separated by spaces.
+      In contrast to `image_name`, these names must include the tag.
     required: false
     default: ""
   cache_image_tags:
     description: |
       Tags of previous versions of this image to use as cache.
       Multiple tags must be separated by spaces.
+      These are converted to full image names using `image_name` as the base name,
+      and added to `cache_image_names`.
     required: false
     default: ""
   repo2docker_args:
@@ -78,23 +71,13 @@ inputs:
       Accepted values are 'true', 'True', '1', 'false', 'False', '0'.
     required: false
     default: 'false'
-  check_public:
-    description: |
-      Validate that the image pushed to the registry is publicly visible.
-      Accepted values are 'true', 'True', '1', 'false', 'False', '0'.
-    required: false
 outputs:
-  image_base_name:
-    description: |
-      Full base name used for all images,
-      i.e., the full image name minus the tag,
-      e.g., 'ghcr.io/REPOSITORY_OWNER/REPOSITORY_NAME'
+  image_names:
+    description: Full names of all tagged docker images, as a JSON array string.
   image_digest:
     description: |
       SHA-256 hash digest of the image.
       This is only available when 'push' is set to true.
-  image_names:
-    description: Full names of all tagged docker images, as a JSON array string.
 branding:
   color: 'gray-dark'
   icon: 'package'
