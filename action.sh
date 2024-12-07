@@ -101,6 +101,9 @@ get_fullpath() {
     echo "$fullpath"
 }
 
+echo $DOCKER_CONFIG
+
+cat $DOCKER_CONFIG/config.json
 
 echo "::group::Docker Authentication Info"
 docker info
