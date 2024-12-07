@@ -101,16 +101,13 @@ get_fullpath() {
     echo "$fullpath"
 }
 
-echo $DOCKER_CONFIG
 
-cat $DOCKER_CONFIG/config.json
-
-echo "::group::Docker Authentication Info"
+echo "::group::Docker Info"
 docker info
 echo "::endgroup::"
 
 
-echo "::group::Input Processing"
+echo "::group::Inputs"
 validate_boolean_input "$INPUT_PUSH" "PUSH"
 validate_boolean_input "$INPUT_CHECK_PUBLIC" "CHECK_PUBLIC"
 # image_user
@@ -140,11 +137,11 @@ echo "::endgroup::"
 
 
 # Docker login
-#if [[ -n "$PUSH" ]]; then
-#    echo "::group::Docker Login"
-#    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
-#    echo "::endgroup::"
-#fi
+if [[ -n "$PUSH" ]]; then
+    echo "::group::Docker Login"
+    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
+    echo "::endgroup::"
+fi
 
 
 # Cache pull
@@ -230,5 +227,4 @@ if [[ -n "$PUSH" ]]; then
             echo "::endgroup::"
         done
     fi
-    docker login
 fi
