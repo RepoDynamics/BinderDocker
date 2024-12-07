@@ -132,12 +132,12 @@ echo "git_path: ${git_path}"
 echo "::endgroup::"
 
 
-# Docker login
-if [[ -n "$PUSH" ]]; then
-    echo "::group::Docker Login"
-    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
-    echo "::endgroup::"
-fi
+## Docker login
+#if [[ -n "$PUSH" ]]; then
+#    echo "::group::Docker Login"
+#    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
+#    echo "::endgroup::"
+#fi
 
 
 # Docker info
