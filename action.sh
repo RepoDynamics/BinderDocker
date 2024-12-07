@@ -78,7 +78,7 @@ generate_cache_image_names() {
 
     local -a cache_image_tags
 
-    read -r -a cache_image_names <<< "$INPUT_CACHE_IMAGE_NAMES"
+    read -r -a CACHE_IMAGE_NAMES <<< "$INPUT_CACHE_IMAGE_NAMES"
     read -r -a cache_image_tags <<< "$INPUT_CACHE_IMAGE_TAGS"
 
     for cache_image_tag in "${cache_image_tags[@]}"; do
@@ -101,20 +101,6 @@ get_fullpath() {
     fi
     echo "$fullpath"
 }
-
-
-# Docker login
-if [[ -n "$PUSH" ]]; then
-    echo "::group::Docker Login"
-    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
-    echo "::endgroup::"
-fi
-
-
-# Docker info
-echo "::group::Docker Info"
-docker info
-echo "::endgroup::"
 
 
 echo "::group::Inputs"
@@ -144,6 +130,21 @@ fi
 git_path=$(get_fullpath "${INPUT_GIT_PATH}")
 echo "git_path: ${git_path}"
 echo "::endgroup::"
+
+
+# Docker login
+if [[ -n "$PUSH" ]]; then
+    echo "::group::Docker Login"
+    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
+    echo "::endgroup::"
+fi
+
+
+# Docker info
+echo "::group::Docker Info"
+docker info
+echo "::endgroup::"
+
 
 
 # Cache pull
