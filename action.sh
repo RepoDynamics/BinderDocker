@@ -3,6 +3,7 @@
 # exit when any command fails
 set -e
 
+
 validate_boolean_input() {
   # Validate the value is a recognized boolean, and set it to "" if it's false.
   local input_value="$1"
@@ -19,6 +20,7 @@ validate_boolean_input() {
     exit 1
   fi
 }
+
 
 generate_image_names() {
     IMAGE_NAMES=()
@@ -41,8 +43,8 @@ generate_image_names() {
 }
 
 
-# Generate and write CACHE_IMAGE_NAMES
 generate_cache_image_names() {
+    # Generate and write CACHE_IMAGE_NAMES
     CACHE_IMAGE_NAMES=()
 
     local -a cache_image_tags
@@ -74,7 +76,7 @@ get_fullpath() {
 
 echo "::group::🖲 Inputs"
 # Verify required inputs
-required_vars=("IMAGE_NAME", "IMAGE_TAGS", "IMAGE_USER", "GIT_REF")
+required_vars=("IMAGE_NAME" "IMAGE_TAGS" "IMAGE_USER" "GIT_REF")
 for var_name in "${required_vars[@]}"; do
     full_var_name="INPUT_$var_name"
     if [ -z "${!full_var_name}" ]; then
