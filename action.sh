@@ -74,7 +74,7 @@ get_fullpath() {
 
 echo "::group::🖲 Inputs"
 # Verify required inputs
-required_vars=("IMAGE_NAME" "IMAGE_TAGS" "IMAGE_USER", "GIT_REF")
+required_vars=("IMAGE_NAME", "IMAGE_TAGS", "IMAGE_USER", "GIT_REF")
 for var_name in "${required_vars[@]}"; do
     full_var_name="INPUT_$var_name"
     if [ -z "${!full_var_name}" ]; then
