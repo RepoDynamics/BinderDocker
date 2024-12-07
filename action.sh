@@ -227,4 +227,5 @@ if [[ -n "$PUSH" ]]; then
             echo "::endgroup::"
         done
     fi
+    docker login
 fi
