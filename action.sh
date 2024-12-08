@@ -105,6 +105,7 @@ echo "- git_path: ${git_path}"
 if ! [[ "$INPUT_VERIFY_PUBLIC" =~ ^(error|warning|false)$ ]]; then
     echo "::error title=BinderDocker::Input `verify_public` can be one of 'error', 'warning', or 'false', but got '$INPUT_VERIFY_PUBLIC'."
     exit 1
+fi
 echo "::endgroup::"
 
 
