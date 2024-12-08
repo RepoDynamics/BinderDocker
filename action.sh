@@ -105,6 +105,12 @@ echo "- git_path: ${git_path}"
 echo "::endgroup::"
 
 
+# Docker login
+if [[ -n "$INPUT_DOCKER_USERNAME" && -n "$INPUT_DOCKER_PASSWORD" ]]; then
+    echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
+fi
+
+
 # Docker info
 echo "::group::ℹ️ Docker Info"
 docker info

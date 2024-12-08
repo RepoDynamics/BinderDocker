@@ -1,6 +1,15 @@
 name: BinderDocker
 description: 'Creates a docker image of your repository to view the collection of notebooks'
 inputs:
+  docker_registry:
+    description: Docker registry.
+    required: false
+  docker_username:
+    description: Docker username.
+    required: false
+  docker_password:
+    description: Docker password.
+    required: false
   image_name:
     description: |
       Name of the image, i.e., `NAMESPACE/IMAGE_NAME` or `REGISTRY/NAMESPACE/IMAGE_NAME`.
