@@ -102,17 +102,22 @@ if [ "$INPUT_DOCKERFILE_APPEND" ]; then
 fi
 git_path=$(get_fullpath "${INPUT_GIT_PATH}")
 echo "- git_path: ${git_path}"
+if ! [[ "$INPUT_VERIFY_PUBLIC" =~ ^(error|warning|false)$ ]]; then
+    echo "::error title=BinderDocker::Input `verify_public` can be one of 'error', 'warning', or 'false', but got '$INPUT_VERIFY_PUBLIC'."
+    exit 1
 echo "::endgroup::"
 
 
 # Docker login
 if [[ -n "$INPUT_DOCKER_USERNAME" && -n "$INPUT_DOCKER_PASSWORD" ]]; then
+    echo "::group::🔓 Login"
     echo ${INPUT_DOCKER_PASSWORD} | docker login $INPUT_DOCKER_REGISTRY -u ${INPUT_DOCKER_USERNAME} --password-stdin
+    echo "::endgroup::"
 fi
 
 
 # Docker info
-echo "::group::ℹ️ Docker Info"
+echo "::group::ℹ️ Info"
 docker info
 echo "::endgroup::"
 
@@ -185,7 +190,20 @@ if [[ -n "$PUSH" ]]; then
     done
     # Digest
     DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${INPUT_IMAGE_NAME,,}" | cut -d'@' -f2)
-    echo "🔐 SHA digest: $DIGEST"
+    echo "🔑 SHA digest: $DIGEST"
     echo "image_digest=$DIGEST" >> $GITHUB_OUTPUT
-    docker logout
+    if [[ "$INPUT_VERIFY_PUBLIC" == "error" || "$INPUT_VERIFY_PUBLIC" == "warning" ]]; then
+      echo "::group::🔒 Logout"
+      docker logout
+      echo "::endgroup::"
+      for image_name in "${IMAGE_NAMES[@]}"; do
+          echo "::group::👁 Public Status Validation: ${image_name}"
+          if docker pull "${image_name}"; then
+              echo "✅ ${image_name} is publicly visible."
+          else
+              echo "::warning title=BinderDocker::Pushed image '${image_name}' is not publicly visible."
+          fi
+          echo "::endgroup::"
+      done
+    fi
 fi

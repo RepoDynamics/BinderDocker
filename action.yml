@@ -1,15 +1,9 @@
 name: BinderDocker
 description: 'Creates a docker image of your repository to view the collection of notebooks'
+branding:
+  color: 'gray-dark'
+  icon: 'package'
 inputs:
-  docker_registry:
-    description: Docker registry.
-    required: false
-  docker_username:
-    description: Docker username.
-    required: false
-  docker_password:
-    description: Docker password.
-    required: false
   image_name:
     description: |
       Name of the image, i.e., `NAMESPACE/IMAGE_NAME` or `REGISTRY/NAMESPACE/IMAGE_NAME`.
@@ -80,6 +74,29 @@ inputs:
       Accepted values are 'true', 'True', '1', 'false', 'False', '0'.
     required: false
     default: 'false'
+  verify_public:
+    description: |
+      Verify whether the pushed image is publicly available.
+      Options are:
+      - error: Verify and raise an error if the image is not publicly available.
+      - warning: Verify and create a warning annotation if the image is not publicly available.
+      - false: Do not verify.
+      Note that if any option other than 'false' is selected,
+      the action will logout from docker.
+    required: false
+    default: 'false'
+  docker_registry:
+    description: Docker registry.
+    required: false
+  docker_username:
+    description: Docker username.
+    required: false
+  docker_password:
+    description: Docker password.
+    required: false
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
 outputs:
   image_names:
     description: Full names of all tagged docker images, as a JSON array string.
@@ -87,9 +104,3 @@ outputs:
     description: |
       SHA-256 hash digest of the image.
       This is only available when 'push' is set to true.
-branding:
-  color: 'gray-dark'
-  icon: 'package'
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
