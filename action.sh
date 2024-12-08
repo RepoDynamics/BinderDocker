@@ -187,4 +187,5 @@ if [[ -n "$PUSH" ]]; then
     DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${INPUT_IMAGE_NAME,,}" | cut -d'@' -f2)
     echo "🔐 SHA digest: $DIGEST"
     echo "image_digest=$DIGEST" >> $GITHUB_OUTPUT
+    docker logout
 fi
