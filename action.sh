@@ -195,7 +195,7 @@ if [[ -n "$PUSH" ]]; then
     echo "image_digest=$DIGEST" >> $GITHUB_OUTPUT
     if [[ "$INPUT_VERIFY_PUBLIC" == "error" || "$INPUT_VERIFY_PUBLIC" == "warning" ]]; then
       echo "::group::🔒 Logout"
-      docker logout
+      docker logout $INPUT_DOCKER_REGISTRY
       echo "::endgroup::"
       for image_name in "${IMAGE_NAMES[@]}"; do
           echo "::group::👁 Public Status Validation: ${image_name}"
